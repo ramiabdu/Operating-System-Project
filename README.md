@@ -47,6 +47,16 @@ Run:
 
 The program is menu-driven. Choose a scheduling method, optionally add processes during runtime, and use the "Show result" menu option to read the generated `output.txt`.
 
+## Screenshots
+
+Screenshots are not available in the repository yet.
+
+Recommended additions:
+
+- Terminal menu screenshot
+- Example scheduling result screenshot
+- Sample `output.txt` result
+
 ## What This Shows
 
 - C++ procedural programming
@@ -58,3 +68,19 @@ The program is menu-driven. Choose a scheduling method, optionally add processes
 ## Portfolio Note
 
 This repository is kept public as an academic operating systems project. It is intentionally small, but now includes a clearer README, sample input, and a compile-verified implementation path.
+
+## Roadmap
+
+- Reduce compiler warnings from unused variables
+- Split algorithms into separate functions/files
+- Add sample output documentation
+- Add basic automated test cases for known input/output
+- Add a license if the project should be reused publicly
+
+## Contributing
+
+This repository is maintained as a portfolio/academic project. Contributions should keep the console interface simple and include build/run notes.
+
+## License
+
+No license has been selected yet.

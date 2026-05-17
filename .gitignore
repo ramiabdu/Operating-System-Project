@@ -1,0 +1,6 @@
+scheduler
+*.out
+*.o
+output.txt
+build/
+.DS_Store

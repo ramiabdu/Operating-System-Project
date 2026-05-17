@@ -4,7 +4,7 @@
 #include <string>
 #include <string.h>
 #include <sstream>
-#define LINE_MAX 1024
+#define SCHEDULER_LINE_MAX 1024
 
 using namespace std;
 
@@ -103,14 +103,37 @@ void writeToFile(string n)
         cout << "file has been updated ! \n";
     }
 }
+void bubble_sortFCFS(struct node *head)
+{
+    int swapped;
 
+    struct node *lPtr;        // left pointer will always point to the start of the list
+    struct node *rPrt = NULL; // right pointer will always point to the end of the list
+    do
+    {
+        swapped = 0;
+        lPtr = head;
+        while (lPtr->next != rPrt)
+        {
+            if (lPtr->arrival > lPtr->next->arrival)
+            {
+                my_swapFCFS(lPtr, lPtr->next);
+                swapped = 1;
+            }
+            lPtr = lPtr->next;
+        }
 
-// read from file
-struct node *readFile(struct node *head) // reading file
+        rPrt = lPtr;
+
+    } while (swapped);
+}
+
+//read from file
+struct node *readFile(struct node *head) //reading file
 {
 
     FILE *fp;
-    char line[LINE_MAX];
+    char line[SCHEDULER_LINE_MAX];
 
     if ((fp = fopen("input.txt", "r")) == NULL)
     {
@@ -118,12 +141,12 @@ struct node *readFile(struct node *head) // reading file
         return 0;
     }
     int x = 1;
-    while (fgets(line, LINE_MAX, fp) != NULL)
+    while (fgets(line, SCHEDULER_LINE_MAX, fp) != NULL)
     {
         int num[3];
         sscanf(line, "%d:%d:%d\n", &num[0], &num[1], &num[2]);
-        // printf("num1=%u num2=%u num3=%u\n",num[0],num[1],num[2]);
-        //  cout<<num[0]<<" "<<num[1]<<" "<<num[2]<<" \n";
+        //printf("num1=%u num2=%u num3=%u\n",num[0],num[1],num[2]);
+        // cout<<num[0]<<" "<<num[1]<<" "<<num[2]<<" \n";
         head = insertback(head, num[0], num[1], num[2], x);
         x = x + 1;
     }
@@ -184,103 +207,84 @@ struct node *addprocess(struct node *head)
     }
 }
 
-void ShortestFirst_P(struct node *head)
+void firstCFS(struct node *head)
 {
     int sz = size(head);
     struct node *temp = NULL;
-    struct node *temp1 = NULL;
     bubble_sortFCFS(head);
+    //display(head);
 
-    //	display(head);
-
-    std::string output = "  \nScheduling Method: Shortest Job First ( Premtive )  \n Process Waiting Times: \n";
+    std::string output = "  \nScheduling Method: First Come First Served \n Process Waiting Times: \n";
 
     int wait = 0;
     int keeptrack = 0;
-    double sum = 0, tsum = 0;
+    double sum = 0;
     double avg;
-    int time = 0;
-    int a, b, c, p, i;
-    a = head->arrival;
-    b = head->burst;
-    p = head->priority;
-    i = head->index;
-    head = head->next;
-    // display(head);
-    bool check = true;
-    do
-    {
-        // cout<<head->arrival;
-        if (time == head->arrival && b > head->burst)
-        {
-            check = false;
-        }
-        else if (b == 0)
-        {
-            output = output + "P" + toString(i) + ": " + toString(0) + " ms \n";
-            check = false;
-        }
-        else
-        {
-            time += 1;
-            b -= 1;
-            keeptrack += time;
-            // display(head);
-        }
 
-    } while (check == true);
-    sum += time;
-
-    bubble_sortshortNP(head);
-    // cout<<time<<" "<<b<<"\n";
-    if (b != 0)
-        head = insertback(head, b, a, p, i);
-    // display(head);
-    int getburst;
+    int x = 1;
     while (head != NULL)
     {
-        // cout<<head->arrival;
-        getburst = head->burst;
 
-        if (getburst != -1)
+        if (x == 1)
         {
-            cout << head->burst;
-            if (time == head->arrival && b > head->burst)
-            {
-                // cout<<"intdsfsd";
-                head = insertback(head, head->burst, head->arrival, head->priority, head->index);
-                head = head->next;
-                getburst = 0;
-            }
-            else if (head->burst == 0)
-            {
-                output = output + "P" + toString(head->index) + ": " + toString(time - head->arrival) + " ms \n";
-                display(head);
-                // cout<<"intdsfsd";
-                getburst = 0;
-                head = head->next;
-            }
-            else
-            {
-                time += 1;
-                head->burst -= 1;
-                keeptrack += time;
-                // display(head);
 
-                getburst -= 1;
-                // cout<<getburst<<" ";
+            if (head->next != NULL)
+
+            {
+
+                output = output + "P" + toString(head->index) + ": " + toString(keeptrack) + " ms \n";
+                keeptrack += head->burst;
+                wait += head->burst - head->arrival;
+                sum += wait;
+                x = 0;
             }
         }
-        sum += time;
+        else if (head->next != NULL)
+        {
+            //	keeptrack=keeptrack- head->arrival;
+            output = output + "P" + toString(head->index) + ": " + toString(keeptrack - head->arrival) + " ms \n";
+            keeptrack += head->burst;
+            wait += head->burst - head->arrival;
+            sum += wait;
+        }
+        else if (head->next == NULL)
+        {
+            output = output + "P" + toString(head->index) + ": " + toString(keeptrack - head->arrival) + " ms \n";
+            keeptrack += head->burst;
+            wait += head->burst - head->arrival;
+        }
+        head = head->next;
     }
-
-    // cout<<"sum"<<sum<<" "<<wait;
+    //	cout<<"sum"<<sum;
     avg = sum / sz;
     output = output + "Average Waiting Time:  " + toString(avg) + " ms \n";
     cout << output;
     writeToFile(output);
 }
+void bubble_sortshortNP(struct node *head)
+{
+    int swapped;
 
+    struct node *lPtr;        // left pointer will always point to the start of the list
+    struct node *rPrt = NULL; // right pointer will always point to the end of the list
+    do
+    {
+        swapped = 0;
+        lPtr = head;
+        while (lPtr->next != rPrt)
+        {
+            if (lPtr->burst > lPtr->next->burst)
+            {
+                my_swapFCFS(lPtr, lPtr->next);
+                swapped = 1;
+            }
+            lPtr = lPtr->next;
+        }
+
+        rPrt = lPtr;
+
+    } while (swapped);
+}
 void ShortestFirst_NP(struct node *head)
 {
     int sz = size(head);
@@ -339,6 +343,254 @@ void ShortestFirst_NP(struct node *head)
     cout << output;
     writeToFile(output);
 }
+void ShortestFirst_P(struct node *head)
+{
+    int sz = size(head);
+    struct node *temp = NULL;
+    struct node *temp1 = NULL;
+    bubble_sortFCFS(head);
+
+    //	display(head);
+
+    std::string output = "  \nScheduling Method: Shortest Job First ( Premtive )  \n Process Waiting Times: \n";
+
+    int wait = 0;
+    int keeptrack = 0;
+    double sum = 0, tsum = 0;
+    double avg;
+    int time = 0;
+    int a, b, c, p, i;
+    a = head->arrival;
+    b = head->burst;
+    p = head->priority;
+    i = head->index;
+    head = head->next;
+    //display(head);
+    bool check = true;
+    do
+    {
+        //cout<<head->arrival;
+        if (time == head->arrival && b > head->burst)
+        {
+            check = false;
+        }
+        else if (b == 0)
+        {
+            output = output + "P" + toString(i) + ": " + toString(0) + " ms \n";
+            check = false;
+        }
+        else
+        {
+            time += 1;
+            b -= 1;
+            keeptrack += time;
+            //display(head);
+        }
+
+    } while (check == true);
+    sum += time;
+
+    bubble_sortshortNP(head);
+    //cout<<time<<" "<<b<<"\n";
+    if (b != 0)
+        head = insertback(head, b, a, p, i);
+    //display(head);
+    int getburst;
+    while (head != NULL)
+    {
+        //cout<<head->arrival;
+        getburst = head->burst;
+
+        if (getburst != -1)
+        {
+            cout << head->burst;
+            if (time == head->arrival && b > head->burst)
+            {
+                //cout<<"intdsfsd";
+                head = insertback(head, head->burst, head->arrival, head->priority, head->index);
+                head = head->next;
+                getburst = 0;
+            }
+            else if (head->burst == 0)
+            {
+                output = output + "P" + toString(head->index) + ": " + toString(time - head->arrival) + " ms \n";
+                display(head);
+                //cout<<"intdsfsd";
+                getburst = 0;
+                head = head->next;
+            }
+            else
+            {
+                time += 1;
+                head->burst -= 1;
+                keeptrack += time;
+                //display(head);
+
+                getburst -= 1;
+                //cout<<getburst<<" ";
+            }
+        }
+        sum += time;
+    }
+
+    //cout<<"sum"<<sum<<" "<<wait;
+    avg = sum / sz;
+    output = output + "Average Waiting Time:  " + toString(avg) + " ms \n";
+    cout << output;
+    writeToFile(output);
+}
+void bubble_sortp(struct node *head)
+{
+    int swapped;
+
+    struct node *lPtr;        // left pointer will always point to the start of the list
+    struct node *rPrt = NULL; // right pointer will always point to the end of the list
+    do
+    {
+        swapped = 0;
+        lPtr = head;
+        while (lPtr->next != rPrt)
+        {
+            if (lPtr->priority > lPtr->next->priority)
+            {
+                my_swapp(lPtr, lPtr->next);
+                swapped = 1;
+            }
+            lPtr = lPtr->next;
+        }
+
+        rPrt = lPtr;
+
+    } while (swapped);
+}
+void priority_NP(struct node *head)
+{
+    int sz = size(head);
+    struct node *temp = NULL;
+    struct node *temp1 = NULL;
+    bubble_sortFCFS(head);
+    //display(head);
+
+    int wait = 0;
+    int keeptrack = 0;
+    double sum = 0;
+    double tsum = 0;
+    double avg;
+    std::string output = "  \n Scheduling Method: Priority Scheduling – Non-Preemptive \n Process Waiting Times: \n";
+    int x = 1;
+    while (head != NULL)
+    {
+
+        output = output + "P" + toString(head->index) + ": " + toString(keeptrack) + " ms \n";
+        keeptrack += head->burst - head->arrival;
+        wait += head->burst - head->arrival;
+        sum += wait;
+        break;
+    }
+    head = head->next;
+    bubble_sortp(head);
+    //display(head);
+
+    //cout<<"\n"<<sum;
+    while (head != NULL)
+    {
+
+        if (head->next != NULL)
+        {
+            sum -= head->arrival;
+            output = output + "P" + toString(head->index) + ": " + toString(keeptrack - head->arrival) + " ms \n";
+            keeptrack += head->burst;
+            wait += head->burst;
+            sum += wait;
+        }
+        else if (head->next == NULL)
+        {
+            sum -= head->arrival;
+            output = output + "P" + toString(head->index) + ": " + toString(keeptrack - head->arrival) + " ms \n";
+            keeptrack += head->burst;
+            wait += head->burst - head->arrival;
+        }
+
+        head = head->next;
+    }
+    //cout<<"sum"<<sum<<" "<<wait;
+    avg = sum / sz;
+    output = output + "Average Waiting Time:  " + toString(avg) + " ms \n";
+    cout << output;
+    writeToFile(output);
+}
+void roundRobin(struct node *head)
+{
+    int sz = size(head);
+    int time_quantum = 2;
+    struct node *temp = head;
+    bubble_sortFCFS(head);
+    //display(head);
+
+    int wait = 0;
+    int keeptrack = 0;
+    double sum = 0;
+    double tsum = 0;
+    double avg;
+    std::string output = "  \n Scheduling Method: Round Robin Scheduling –  \n Process Waiting Times: \n";
+    int x;
+    int isok = 0;
+    int y;
+    int i = 0;
+    int j = 0;
+
+    while (head != NULL)
+    {
+        int time = time_quantum;
+        //cout<<"enter";
+        //if(y==1)
+        //	{
+        //		head=stack;
+        //	}
+        if (head->index == y)
+        {
+            break;
+        }
+        y = head->index;
+
+        if (head->burst != 0)
+        {
+
+            x = head->burst;
+            if (x > 2)
+            {
+                x = x - 2;
+                insertback(head, x, head->arrival, head->priority, head->index);
+                tsum += 2;
+            }
+            else if (x == 2)
+            {
+                x = x - 2;
+                sum += tsum - head->arrival - (2 * i);
+                output = output + "P" + toString(head->index) + ": " + toString(tsum - head->arrival - (2 * i)) + " ms \n";
+                tsum += 2;
+            }
+            else if (x == 1)
+            {
+                x = x - 1;
+                sum += tsum - head->arrival - (2 * i);
+                output = output + "P" + toString(head->index) + ": " + toString(tsum - head->arrival - (2 * i)) + " ms \n";
+                tsum += 1;
+            }
+            if (head->index == 5)
+                i++;
+        }
+        head = head->next;
+        //	display(head);
+    }
+    //	cout<<"sum"<<sum<<" "<<wait;
+    avg = sum / sz;
+    output = output + "Average Waiting Time:  " + toString(avg) + " ms \n";
+    cout << output;
+    writeToFile(output);
+
+    //display(head);
+}
 
 int main(void)
 {
@@ -368,7 +620,7 @@ int main(void)
             struct node *head = NULL;
             head = readFile(head);
             head = addprocess(head);
-            // display(head);
+            //display(head);
             firstCFS(head);
         }
         else if (option1 == 2)
@@ -387,7 +639,7 @@ int main(void)
                 struct node *head = NULL;
                 head = readFile(head);
                 head = addprocess(head);
-                // display(head);
+                //display(head);
                 ShortestFirst_NP(head);
             }
             break;
@@ -396,7 +648,7 @@ int main(void)
                 struct node *head = NULL;
                 head = readFile(head);
                 head = addprocess(head);
-                // display(head);
+                //display(head);
                 ShortestFirst_P(head);
             }
             break;
@@ -416,19 +668,20 @@ int main(void)
             cout << "\n please select the method : ";
             cin >> a;
 
+            switch (a)
             {
             case 1:
             {
                 struct node *head = NULL;
                 head = readFile(head);
                 head = addprocess(head);
-                // display(head);
+                //display(head);
                 priority_NP(head);
             }
             break;
             case 2:
             {
-                // cord has to be here
+                //cord has to be here
             }
             break;
             default:
@@ -443,6 +696,12 @@ int main(void)
             cout << "Enter the time quantum ";
             int time_quantum;
             cin >> time_quantum;
+
+            struct node *head = NULL;
+            head = readFile(head);
+            head = addprocess(head);
+            //display(head);
+            roundRobin(head);
         }
     }
     if (option == 2)
